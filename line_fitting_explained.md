@@ -30,6 +30,8 @@ $\Sigma$ describes how the points are spread around the centroid:
 - Smallest eigenvalue's eigenvector → **line normal** (the direction of minimum spread, i.e. the fitting error).
 
 [[1](https://www.youtube.com/watch?v=MNbJTYnYN0E)]
+[[2](https://www.youtube.com/watch?v=FD4DeN81ODY)]
+
 
 ## 2. Line Angle $\varphi$
 
@@ -67,6 +69,3 @@ $$
 d = m_x\cos\alpha + m_y\sin\alpha
 $$
 
-## 4. Notes
-
-- https://www.youtube.com/watch?v=MNbJTYnYN0E

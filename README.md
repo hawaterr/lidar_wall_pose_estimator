@@ -10,8 +10,8 @@ The repository contains the ROS 2 package, unit tests, and a script that generat
 
 ![RViz: LaserScan points (white) and the estimated wall normal (magenta) during the flight](docs/demo.gif)
 
-*Playback of the generated bag at 2x speed: approach with yaw oscillation, turning away from the wall
-and back, and flying through dust. [Full-speed video](docs/demo.webm).*
+The video shows the LaserScan points (white) during the flight. For each scan, the node fits a line to
+the points in front of the drone. The purple arrow is placed at the closest point of the wall and points at the normal orientation.
 
 ## How the wall is estimated
 
