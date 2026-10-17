@@ -1,0 +1,6 @@
+wall_pose_estimator:
+  ros__parameters:
+    fov: 1.0472              # [rad] total front field of view used for the fit (60 deg)
+    min_points: 20           # minimum number of valid points for an estimate
+    inlier_threshold: 0.05   # [m] max point-to-line distance for inliers
+    max_rms_residual: 0.03   # [m] reject estimates with a worse fit

@@ -1,0 +1,17 @@
+# colcon build output
+build/
+install/
+log/
+
+# rosbags 
+bags/
+*.db3
+*.mcap
+
+# Python
+__pycache__/
+*.pyc
+
+# editors
+.vscode/
+EOF
