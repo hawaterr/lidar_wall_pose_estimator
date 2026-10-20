@@ -28,11 +28,9 @@ public:
         config.inlier_threshold = this->declare_parameter("inlier_threshold", config.inlier_threshold);
         config.max_rms_residual = this->declare_parameter("max_rms_residual", config.max_rms_residual);
         estimator_ = WallEstimator(config);
-        //  - create the publishers of wall parameters
         wallPosePublisher_ = this->create_publisher<geometry_msgs::msg::PoseStamped>("wall/pose", 10);
         wallDistPublisher_ = this->create_publisher<std_msgs::msg::Float64>("wall/distance", 10);
 
-        //  - create the subscription to /scan 
         laser_subscriber_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
         "scan", rclcpp::SensorDataQoS(), std::bind(&WallPoseEstimatorNode::onScan, this, std::placeholders::_1)); //SensorDataQoS(), 10 was reliable the queue, now best effort
 
@@ -40,10 +38,6 @@ public:
 
 private:
     void onScan(const sensor_msgs::msg::LaserScan & msg) {
-        //  - run the estimator on the scan
-        //  - if there is an estimate: publish /wall/pose and /wall/distance
-        //  - if not: don't publish, log a throttled warning
-
         std::optional<WallEstimate> wallEstimate = estimator_.estimate(msg.ranges, msg.angle_min, msg.angle_increment, msg.range_min, msg.range_max);
 
         if (wallEstimate.has_value()){

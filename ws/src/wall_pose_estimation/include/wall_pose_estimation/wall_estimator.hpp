@@ -37,7 +37,7 @@ class WallEstimator {
 public:
     explicit WallEstimator(const EstimatorConfig& config = EstimatorConfig{});
 
-    /// Step 1: Converts the valid returns inside the front field of view to Cartesian points.
+    /// Converts the valid returns inside the front field of view to Cartesian points.
     /// A return is valid if it is finite and within [range_min, range_max].
     /// The ray with index i has angle  angle_min + i * angle_increment.
     std::vector<Point2D> extractFrontPoints(const std::vector<float>& ranges,
@@ -46,12 +46,12 @@ public:
                                             double range_min,
                                             double range_max) const;
 
-    /// Step 2: Fits a line to the points (total least squares) and returns distance and
+    /// Fits a line to the points (total least squares) and returns distance and
     /// normal angle of that line relative to the origin. Returns std::nullopt if fewer than
     /// 2 points are given or the fit is degenerate.
     static std::optional<WallEstimate> fitLine(const std::vector<Point2D>& points);
 
-    /// Step 3: Full pipeline: extract points, fit, reject outliers, refit, validate.
+    /// Full pipeline: extract points, fit, reject outliers, refit, validate.
     /// Returns std::nullopt if no reliable wall is found.
     std::optional<WallEstimate> estimate(const std::vector<float>& ranges,
                                          double angle_min,
