@@ -80,10 +80,17 @@ The node subscribes to `/scan` (`sensor_msgs/msg/LaserScan`) and publishes `/wal
 
 ### Visualization in RViz
 
-The bag contains no TF data, so publish a static transform to make the `lidar_link` frame known:
+The bag contains no TF data, so publish a static transform to make the `lidar_link` frame known.
+
+Terminal 4, the static transform:
 
 ```bash
 ros2 run tf2_ros static_transform_publisher --frame-id map --child-frame-id lidar_link
+```
+
+Terminal 5, RViz:
+
+```bash
 rviz2
 ```
 
