@@ -50,9 +50,9 @@ private:
             auto poseMessage = geometry_msgs::msg::PoseStamped();
             poseMessage.header = msg.header; 
             poseMessage.pose.position.x = wallEstimate.value().distance *
-                                          cos(wallEstimate.value().angle);
+                                          std::cos(wallEstimate.value().angle);
             poseMessage.pose.position.y = wallEstimate.value().distance *
-                                          sin(wallEstimate.value().angle);
+                                          std::sin(wallEstimate.value().angle);
             poseMessage.pose.orientation.z = std::sin(wallEstimate.value().angle / 2.0);
             poseMessage.pose.orientation.w = std::cos(wallEstimate.value().angle / 2.0); 
 

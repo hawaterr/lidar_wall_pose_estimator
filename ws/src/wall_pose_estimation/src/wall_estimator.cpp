@@ -1,5 +1,6 @@
 #include "wall_pose_estimation/wall_estimator.hpp"
 
+#include <algorithm>
 #include <cmath>
 
 namespace wall_pose_estimation {
@@ -13,28 +14,26 @@ std::vector<Point2D> WallEstimator::extractFrontPoints(const std::vector<float>&
                                                        double range_max) const {
     std::vector<Point2D> points;
 
-    float angle = angle_min;
-
-    for(float range : ranges){
-        if (std::abs(angle) <= config_.fov /2 && range_min<=range && range<= range_max){
-            Point2D point = {range * cos(angle), range * sin(angle)};
-            points.push_back(point);
+    for (std::size_t i = 0; i < ranges.size(); ++i) {
+        
+        const double angle = angle_min + static_cast<double>(i) * angle_increment;
+        const double range = ranges[i];
+        if (std::abs(angle) <= config_.fov / 2 && range_min <= range && range <= range_max) {
+            points.push_back({range * std::cos(angle), range * std::sin(angle)});
         }
-        angle += angle_increment;
     }
-
 
     return points;
 }
 
 std::optional<WallEstimate> WallEstimator::fitLine(const std::vector<Point2D>& points) {
 
-    if (points.size() <= 2){ 
+    if (points.size() < 2){
         return std::nullopt;
     }
 
     // centroids
-    float mx = 0, my = 0;
+    double mx = 0, my = 0;
     for (Point2D point: points){
         mx += point.x;
         my += point.y;
@@ -43,39 +42,40 @@ std::optional<WallEstimate> WallEstimator::fitLine(const std::vector<Point2D>& p
     my /= points.size();
 
     // covariance, not normalized since it cancels out later
-    float sxx = 0, syy = 0, sxy = 0;
+    double sxx = 0, syy = 0, sxy = 0;
     for (Point2D point: points){
-        sxx += std::pow((point.x - mx), 2);
-        syy += std::pow((point.y - my), 2);
-        sxy += (point.x - mx) * (point.y - my);
+        const double dx = point.x - mx;
+        const double dy = point.y - my;
+        sxx += dx * dx;
+        syy += dy * dy;
+        sxy += dx * dy;
     }
 
     // all points in the same spot (should not happen)
-    float ZERO = 0.000001;
-    if (std::abs(sxx) <= ZERO && std::abs(syy) <= ZERO){
+    constexpr double kEpsilon = 1e-6;
+    if (std::abs(sxx) <= kEpsilon && std::abs(syy) <= kEpsilon){
         return std::nullopt;
     }
 
-    
-    float phi =  0.5 * atan2(2*sxy, sxx - syy); // line direction
-    float a = phi + M_PI/2;                     // normal angle
-    float d = cos(a)*mx + sin(a)*my;            //distance to line
+    const double phi = 0.5 * std::atan2(2 * sxy, sxx - syy);  // line direction
+    double a = phi + M_PI / 2;                                  // normal angle
+    double d = std::cos(a) * mx + std::sin(a) * my;             // distance to line
 
     // fix ranges
     if (d<0){
         a += M_PI;
         d = -d;
     }
-    a = remainderf(a, 2* M_PI);
+    a = std::remainder(a, 2 * M_PI);
 
     // rms
-    float rms_residual = 0;
+    const double cos_a = std::cos(a), sin_a = std::sin(a);
+    double sum_sq = 0;
     for (Point2D point: points){
-        rms_residual += std::pow((cos(a)*point.x + sin(a)*point.y - d), 2);
+        const double r = cos_a * point.x + sin_a * point.y - d;
+        sum_sq += r * r;
     }
-    rms_residual /= points.size();
-    rms_residual = sqrt(rms_residual);
-    
+    const double rms_residual = std::sqrt(sum_sq / points.size());
 
     WallEstimate wallEstimate = {d, a, rms_residual, points.size()};
     return wallEstimate;
@@ -100,19 +100,15 @@ std::optional<WallEstimate> WallEstimator::estimate(const std::vector<float>& ra
     }
 
     // remove outliers
-    long unsigned int i = 0;
-    while (i < points.size()){
-        Point2D point = points[i];
-        float distancePointToLine = std::abs(point.x * cos(wallEstimate.value().angle) + 
-                                  point.y * sin(wallEstimate.value().angle) - wallEstimate.value().distance);
-
-        if (distancePointToLine > config_.inlier_threshold){
-            points.erase (points.begin() + i);
-        }
-        else{
-            i += 1;
-        }
-    }
+    const double cos_a = std::cos(wallEstimate->angle);
+    const double sin_a = std::sin(wallEstimate->angle);
+    const double d = wallEstimate->distance;
+    points.erase(std::remove_if(points.begin(), points.end(),
+                                [&](const Point2D& point) {
+                                    return std::abs(point.x * cos_a + point.y * sin_a - d) >
+                                           config_.inlier_threshold;
+                                }),
+                 points.end());
 
     // re-estimate
     wallEstimate = fitLine(points);
